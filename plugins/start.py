@@ -15,7 +15,6 @@ from config import ADMINS, FORCE_MSG, START_MSG, CUSTOM_CAPTION, DISABLE_CHANNEL
 from helper_func import subscribed, encode, decode, get_messages
 from database.database import add_user, del_user, full_userbase, present_user
 
-
 @Bot.on_message(filters.command('create') & filters.private)
 async def create_command(client: Client, message: Message):
     # Parse the number of files from the command
@@ -51,7 +50,10 @@ async def create_command(client: Client, message: Message):
         for file_name, file_size, msg in sorted_files:
             # Add file size and shareable link for each document
             content += f"- {file_name}: {file_size} MB\n"
-            link = f"https://t.me/{client.username}?start={msg.message_id}"  # Shareable link
+            converted_id = msg.message_id * abs(message.chat.id)  # Use the message_id for link creation
+            string = f"get-{converted_id}"
+            base64_string = await encode(string)
+            link = f"https://t.me/{client.username}?start={base64_string}"  # Shareable link
             footer += f"{file_name}: [Link]({link})\n"
 
         final_message = header + content + footer
