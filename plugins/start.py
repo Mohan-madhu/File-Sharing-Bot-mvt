@@ -50,10 +50,22 @@ async def create_command(client: Client, message: Message):
         for file_name, file_size, msg in sorted_files:
             # Add file size and shareable link for each document
             content += f"- {file_name}: {file_size} MB\n"
-            converted_id = msg.message_id * abs(message.chat.id)  # Use the message_id for link creation
+            try:
+                post_message = await message.copy(chat_id = client.db_channel.id, disable_notification=True)
+            except FloodWait as e:
+                await asyncio.sleep(e.value)
+                post_message = await message.copy(chat_id = client.db_channel.id, disable_notification=True)
+            except Exception as e:
+                print(e)
+                await reply_text.edit_text("Something went Wrong..!")
+                return
+                
+            converted_id = post_message.id * abs(client.db_channel.id)
             string = f"get-{converted_id}"
             base64_string = await encode(string)
-            link = f"https://t.me/{client.username}?start={base64_string}"  # Shareable link
+            link = f"https://t.me/{client.username}?start={base64_string}"
+
+            
             footer += f"{file_name}: [Link]({link})\n"
 
         final_message = header + content + footer
