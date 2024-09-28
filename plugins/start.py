@@ -16,49 +16,11 @@ from helper_func import subscribed, encode, decode, get_messages
 from database.database import add_user, del_user, full_userbase, present_user
 
 
-@Bot.on_message(filters.command('create') & filters.private)
-async def create_command(client: Client, message: Message):
-    # Parse the number of files from the command
-    try:
-        num_files = int(message.text.split("-")[1].strip())
-    except (IndexError, ValueError):
-        await message.reply_text("Invalid command format! Use /create - (no. of files)")
-        return
-    
-    await message.reply_text(f"Please send {num_files} document files.")
-
-    # Wait for user to upload files
-    uploaded_files = []
-    for _ in range(num_files):
-        doc_msg = await client.listen(message.chat.id, filters.document)
-        uploaded_files.append(doc_msg)
-
-    if len(uploaded_files) == num_files:
-        # Get file sizes and sort them in ascending order
-        file_data = []
-        for msg in uploaded_files:
-            file_size_mb = round(msg.document.file_size / (1024 * 1024), 2)  # Convert to MB
-            file_data.append((msg.document.file_name, file_size_mb, msg))
-
-        # Sort by file size
-        sorted_files = sorted(file_data, key=lambda x: x[1])
-
-        # Prepare the response message
-        header = "📄 **Document List**\n"
-        footer = "\n🔗 **Shareable Links:**\n"
-        content = ""
-
-        for file_name, file_size, msg in sorted_files:
-            # Add file size and shareable link for each document
-            content += f"- {file_name}: {file_size} MB\n"
-            link = f"https://t.me/{client.username}?start={msg.message_id}"  # Shareable link
-            footer += f"{file_name}: [Link]({link})\n"
-
-        final_message = header + content + footer
-
-        # Send the final message to the user
-        await message.reply_text(final_message, parse_mode=ParseMode.MARKDOWN)
-
+@Bot.on_message(filters.command('create') & filters.private & filters.user(ADMINS))
+async def get_users(client: Bot, message: Message):
+    msg = await client.send_message(chat_id=message.chat.id, text=WAIT_MSG)
+    users = await full_userbase()
+    await msg.edit(f"{len(users)} users are using this bot")
 
 @Bot.on_message(filters.command('start') & filters.private & subscribed)
 async def start_command(client: Client, message: Message):
