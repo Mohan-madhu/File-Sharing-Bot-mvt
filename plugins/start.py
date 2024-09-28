@@ -51,10 +51,10 @@ async def create_command(client: Client, message: Message):
             # Add file size and shareable link for each document
             content += f"- {file_name}: {file_size} MB\n"
             try:
-                post_message = await message.copy(chat_id = client.db_channel.id, disable_notification=True)
+                post_message = await message.copy(chat_id = msg.db_channel.id, disable_notification=True)
             except FloodWait as e:
                 await asyncio.sleep(e.value)
-                post_message = await message.copy(chat_id = client.db_channel.id, disable_notification=True)
+                post_message = await message.copy(chat_id = msg.db_channel.id, disable_notification=True)
             except Exception as e:
                 print(e)
                 await reply_text.edit_text("Something went Wrong..!")
